@@ -27,6 +27,7 @@
     <ClCompile Include="Sources\imgui-master\imgui_tables.cpp" />
     <ClCompile Include="Sources\imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="Sources\RetroImageConverter.cpp" />
+    <ClCompile Include="Sources\SinclairQL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\imgui-master\backends\imgui_impl_sdl3.h" />
@@ -37,6 +38,7 @@
     <ClInclude Include="Sources\imgui-master\imstb_rectpack.h" />
     <ClInclude Include="Sources\imgui-master\imstb_textedit.h" />
     <ClInclude Include="Sources\imgui-master\imstb_truetype.h" />
+    <ClInclude Include="Sources\SinclairQL.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

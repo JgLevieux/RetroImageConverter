@@ -5,16 +5,17 @@
 #include <imgui-master/backends/imgui_impl_sdl3.h>
 #include <imgui-master/backends/imgui_impl_sdlrenderer3.h>
 
+#include "Sources/SinclairQL.h"
+
+
 int main(int argc, char* argv[])
 {
-    // 1. Initialisation SDL 3
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
         SDL_Log("Erreur SDL_Init: %s", SDL_GetError());
         return -1;
     }
 
-    // Création de la fenêtre et du renderer en une étape (Spécifique SDL3)
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
     float fBaseWidthRenderer = 1920.0f;
@@ -27,15 +28,23 @@ int main(int argc, char* argv[])
 
     SDL_SetRenderVSync(renderer, 1);
 
-    // 2. Initialisation ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
 
-    // Backends spécifiques à la SDL 3
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
+
+	// Test image loading
+    SDL_Surface* pSurface = IMG_Load("Samples\\Test_8x8.png");
+    if (pSurface == NULL)
+        return 0;
+    // For now we only support SDL_PIXELFORMAT_ABGR8888
+    if (pSurface->format != SDL_PIXELFORMAT_ABGR8888)
+        return 0;
+
+	ConvertToSinclairQL8(pSurface, "Test_8x8");
 
     bool running = true;
     while (running)
@@ -58,6 +67,7 @@ int main(int argc, char* argv[])
         }
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
+
         ImGui::End();
         ImGui::Render();
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);

@@ -42,6 +42,9 @@
     <ClCompile Include="Sources\imgui-master\backends\imgui_impl_sdlrenderer3.cpp">
       <Filter>Source Files\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\SinclairQL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\imgui-master\imconfig.h">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="Sources\imgui-master\backends\imgui_impl_sdlrenderer3.h">
       <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\SinclairQL.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
