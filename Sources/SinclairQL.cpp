@@ -85,32 +85,52 @@ int GetSinclairQLColor8Index(Uint8 r, Uint8 g, Uint8 b)
 
 bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName)
 {
-    Uint32* pixels = (Uint32*)pSurface->pixels;
+    Uint32* pPixels = (Uint32*)pSurface->pixels;
     int w = pSurface->pitch / 4;
     int h = pSurface->h;
 
     // Check if the width is a multiple of 4, since we need to process 4 pixels at a time
-    int word = w / 4;
-    if (word * 4 != w)
+    int nNbWord = w / 4;
+    if (nNbWord * 4 != w)
     {
         return false;
     }
 
-    // Allocate memory for the output image
-    Uint16* pOutputBitmap = new Uint16[(word+1) * h];
-    Uint16* pOutputMask = new Uint16[(word+1) * h];
+    // Open file for output.
+    FILE* pFile = nullptr;
+    fopen_s(&pFile, "X://Sources//test.bin", "wb");
+    if (!pFile)
+        return false;
 
-	for (int k = 0; k < 4; k++) // Sprite shifting (4 pixels per word)
+	// Create a new pixel array to shift the image
+	Uint32* pPixelsForShifting = new Uint32[(w + 8) * h]; // We add 4 pixels on each side
+	memset(pPixelsForShifting, 0, (w + 8) * h * sizeof(Uint32)); // Initialize the new pixel array to 0 (transparent)
+    for (int i = 0; i < h; i++)
+    {
+        for (int j = 0; j < w; j++)
+        {
+			pPixelsForShifting[i * (w + 8) + j + 4] = pPixels[i * w + j];
+        }
+    }
+
+    // We add one more word for shifting (4 pixels on QL mode 8 colors)
+    nNbWord += 1;
+
+    // Allocate memory for the output image
+    Uint16* pOutputBitmap = new Uint16[nNbWord * h];
+    Uint16* pOutputMask = new Uint16[nNbWord * h];
+
+	for (int k = 4; k > 0 ; k--) // Sprite shifting (4 pixels per word)
     {
 		for (int i = 0; i < h; i++) // Each line of the image
         {
-			for (int j = 0; j < word+1; j++) // Each word of 4 pixels (one more for shifting)
+			for (int j = 0; j < nNbWord; j++) // Each word of 4 pixels
             {
                 Uint16 wQLColor8 = 0;
                 Uint16 wQLMask8 = 0;
                 Uint8 p0[4], p1[4], p2[4], p3[4];
 
-                int nPixel = pixels[i * w + j * 4 + 0];
+                int nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 0 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p0[0], &p0[1], &p0[2], &p0[3]);
                 if (p0[3] > 128) // If alpha is less than 128, consider it transparent
                 {
@@ -118,7 +138,7 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName)
                     wQLColor8 |= SinclairQLWord_00[GetSinclairQLColor8Index(p0[0], p0[1], p0[2])];
                 }
 
-                nPixel = pixels[i * w + j * 4 + 1];
+                nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 1 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p1[0], &p1[1], &p1[2], &p1[3]);
                 if (p1[3] > 128)
                 {
@@ -126,7 +146,7 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName)
                     wQLColor8 |= SinclairQLWord_01[GetSinclairQLColor8Index(p1[0], p1[1], p1[2])];
                 }
 
-                nPixel = pixels[i * w + j * 4 + 2];
+                nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 2 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p2[0], &p2[1], &p2[2], &p2[3]);
                 if (p2[3] > 128)
                 {
@@ -134,7 +154,7 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName)
                     wQLColor8 |= SinclairQLWord_02[GetSinclairQLColor8Index(p2[0], p2[1], p2[2])];
                 }
 
-                nPixel = pixels[i * w + j * 4 + 3];
+                nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 3 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p3[0], &p3[1], &p3[2], &p3[3]);
                 if (p3[3] > 128)
                 {
@@ -145,20 +165,18 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName)
                 wQLColor8 = (wQLColor8 & 0xFF00) >> 8 | (wQLColor8 & 0x00FF) << 8; // Swap bytes for little-endian
                 wQLMask8 = (wQLMask8 & 0xFF00) >> 8 | (wQLMask8 & 0x00FF) << 8; // Swap bytes for little-endian
 
-                pOutputBitmap[i * word + j] = wQLColor8;
-                pOutputMask[i * word + j] = wQLMask8;
+                pOutputBitmap[i * nNbWord + j] = wQLColor8;
+                pOutputMask[i * nNbWord + j] = wQLMask8;
             }
         }
+        fwrite(pOutputBitmap, sizeof(Uint16), nNbWord * h, pFile);
+        fwrite(pOutputMask, sizeof(Uint16), nNbWord * h, pFile);
+
+        memset(pOutputBitmap, 0, nNbWord*2 * h);
+        memset(pOutputMask, 0, nNbWord*2 * h);
     }
 
-	FILE* pFile = nullptr;
-	fopen_s(&pFile, "X://Sources//test.bin", "wb");
-	if (pFile)
-	{
-		fwrite(pOutputBitmap, sizeof(Uint16), word * h, pFile);
-        fwrite(pOutputMask, sizeof(Uint16), word * h, pFile);
-        fclose(pFile);
-	}
+    fclose(pFile);
 
     return true;
 }
