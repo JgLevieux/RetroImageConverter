@@ -134,32 +134,44 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName)
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p0[0], &p0[1], &p0[2], &p0[3]);
                 if (p0[3] > 128) // If alpha is less than 128, consider it transparent
                 {
-                    wQLMask8 |= SinclairQLWord_00[7];
                     wQLColor8 |= SinclairQLWord_00[GetSinclairQLColor8Index(p0[0], p0[1], p0[2])];
+                }
+                else
+                {
+                    wQLMask8 |= SinclairQLWord_00[7];
                 }
 
                 nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 1 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p1[0], &p1[1], &p1[2], &p1[3]);
                 if (p1[3] > 128)
                 {
-                    wQLMask8 |= SinclairQLWord_01[7];
                     wQLColor8 |= SinclairQLWord_01[GetSinclairQLColor8Index(p1[0], p1[1], p1[2])];
+                }
+                else
+               {
+                    wQLMask8 |= SinclairQLWord_01[7];
                 }
 
                 nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 2 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p2[0], &p2[1], &p2[2], &p2[3]);
                 if (p2[3] > 128)
                 {
-                    wQLMask8 |= SinclairQLWord_02[7];
                     wQLColor8 |= SinclairQLWord_02[GetSinclairQLColor8Index(p2[0], p2[1], p2[2])];
+                }
+                else
+               {
+                    wQLMask8 |= SinclairQLWord_02[7];
                 }
 
                 nPixel = pPixelsForShifting[i * (w + 8) + j * 4 + 3 + k];
                 SDL_GetRGBA(nPixel, SDL_GetPixelFormatDetails(pSurface->format), NULL, &p3[0], &p3[1], &p3[2], &p3[3]);
                 if (p3[3] > 128)
                 {
-                    wQLMask8 |= SinclairQLWord_03[7];
                     wQLColor8 |= SinclairQLWord_03[GetSinclairQLColor8Index(p3[0], p3[1], p3[2])];
+                }
+                else
+               {
+                    wQLMask8 |= SinclairQLWord_03[7];
                 }
 
                 wQLColor8 = (wQLColor8 & 0xFF00) >> 8 | (wQLColor8 & 0x00FF) << 8; // Swap bytes for little-endian
