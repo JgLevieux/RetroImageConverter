@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     ImGui_ImplSDLRenderer3_Init(renderer);
 
 	// Test image loading
-    SDL_Surface* pSurface = IMG_Load("Samples\\Test_8x8.png");
+    SDL_Surface* pSurface = IMG_Load("Test_8x8.png");
     if (pSurface == NULL)
         return 0;
     // For now we only support SDL_PIXELFORMAT_ABGR8888
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 	ConvertToSinclairQL8(pSurface, "Test_8x8");
 
     bool running = true;
-    while (running)
+    //while (running)
     {
         // Début de frame ImGui
         ImGui_ImplSDLRenderer3_NewFrame();
