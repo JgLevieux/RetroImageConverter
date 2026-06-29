@@ -37,14 +37,14 @@ int main(int argc, char* argv[])
     ImGui_ImplSDLRenderer3_Init(renderer);
 
 	// Test image loading
-    SDL_Surface* pSurface = IMG_Load("Test_8x8.png");
+    SDL_Surface* pSurface = IMG_Load("X://Sources//Jgl//Data//Bubbles16x16x5.png");
     if (pSurface == NULL)
         return 0;
     // For now we only support SDL_PIXELFORMAT_ABGR8888
     if (pSurface->format != SDL_PIXELFORMAT_ABGR8888)
         return 0;
 
-	ConvertToSinclairQL8(pSurface, "Test_8x8");
+	ConvertToSinclairQL8(pSurface, "Bubbles16x16x5", true, true);
 
     bool running = true;
     //while (running)

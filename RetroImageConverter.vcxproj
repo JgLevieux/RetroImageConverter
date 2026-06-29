@@ -40,9 +40,6 @@
     <ClInclude Include="Sources\imgui-master\imstb_truetype.h" />
     <ClInclude Include="Sources\SinclairQL.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Sources\SQL_TestJgl.asm" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

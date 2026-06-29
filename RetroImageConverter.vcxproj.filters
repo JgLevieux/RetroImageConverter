@@ -75,9 +75,4 @@
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Sources\SQL_TestJgl.asm">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
 </Project>
