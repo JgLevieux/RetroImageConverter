@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <commdlg.h>
 #include <string>
+#include <iostream>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL3_image/SDL_image.h>
@@ -13,9 +14,40 @@
 std::string OpenWindowsFileDialog();
 std::string SaveWindowsFileDialog();
 
-static std::string filePath;
 static SDL_Surface* pSurface = nullptr;
 static bool bValidSurfaceLoaded = false;
+static char filePathLoad[2048] = "";
+static char filePathSave[2048] = "";
+
+void SDLCALL MyFileDialogCallback(void* userdata, const char* const* filelist, int filter)
+{
+    if (filelist == nullptr)
+    {
+        std::cerr << "SDL dialog error: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    if (filelist[0] == nullptr) // closed without selection
+    {
+        return;
+    }
+
+    SDL_strlcpy((char*)userdata, filelist[0], 2048);
+}
+
+static const SDL_DialogFileFilter filtersLoad[] =
+{
+        { "Images", "png" },
+        { "Tous les fichiers", "*" }
+};
+int numFiltersLoad = sizeof(filtersLoad) / sizeof(filtersLoad[0]);
+
+static const SDL_DialogFileFilter filtersSave[] =
+{
+        { "Binary", "bin" },
+        { "Tous les fichiers", "*" }
+};
+int numFiltersSave = sizeof(filtersSave) / sizeof(filtersSave[0]);
 
 int main(int argc, char* argv[])
 {
@@ -57,37 +89,37 @@ int main(int argc, char* argv[])
         ImGui::Begin("RetroImageConverter");
         if (ImGui::Button("Load PNG 32 bits"))
         {
-            filePath = OpenWindowsFileDialog();
+            bValidSurfaceLoaded = false;
+            filePathLoad[0] = 0;
+            SDL_ShowOpenFileDialog(MyFileDialogCallback, filePathLoad, window, filtersLoad, numFiltersLoad, nullptr, false);
+        }
 
-            if (!filePath.empty())
+        if (!bValidSurfaceLoaded && filePathLoad[0] != 0)
+        {
+            pSurface = IMG_Load(filePathLoad);
+            if (pSurface != nullptr)
             {
-                pSurface = IMG_Load(filePath.c_str());
-                if (pSurface != nullptr)
+                // For now we only support SDL_PIXELFORMAT_ABGR8888
+                if (pSurface->format == SDL_PIXELFORMAT_ABGR8888)
                 {
-                    // For now we only support SDL_PIXELFORMAT_ABGR8888
-                    if (pSurface->format == SDL_PIXELFORMAT_ABGR8888)
-                    {
-                        bValidSurfaceLoaded = true;
-                    }
-                    else
-                    {
-                        SDL_DestroySurface(pSurface);
-                        pSurface = nullptr;
-                        MessageBoxA(NULL, "Only support SDL_PIXELFORMAT_ABGR8888 for now. Save your image as PNG in 32 bits format.", "Fatal error", MB_ICONERROR | MB_OK);
-                    }
+                    bValidSurfaceLoaded = true;
                 }
                 else
                 {
-                    MessageBoxA(NULL, "Failed to load the image with SDL", "Fatal error", MB_ICONERROR | MB_OK);
+                    SDL_DestroySurface(pSurface);
+                    pSurface = nullptr;
+                    MessageBoxA(NULL, "Only support SDL_PIXELFORMAT_ABGR8888 for now. Save your image as PNG in 32 bits format.", "Fatal error", MB_ICONERROR | MB_OK);
                 }
             }
-
-            // ConvertToSinclairQL8(pSurface, "Bubbles16x16x5", true, true);
+            else
+            {
+                MessageBoxA(NULL, "Failed to load the image with SDL", "Fatal error", MB_ICONERROR | MB_OK);
+            }
         }
 
         if (bValidSurfaceLoaded)
         {
-            ImGui::Text("Image %s loaded.", filePath.c_str());
+            ImGui::Text("Image %s loaded.", filePathLoad);
             int w = pSurface->pitch / 4;
             int h = pSurface->h;
             ImGui::Text("Witdh : %d", w);
@@ -100,32 +132,35 @@ int main(int argc, char* argv[])
 
             if (ImGui::Button("Convert for Sinclair QL - 8 colors mode"))
             {
-                std::string filePathDest = SaveWindowsFileDialog();
-                if (!filePathDest.empty())
+                filePathSave[0] = 0;
+                SDL_ShowSaveFileDialog(MyFileDialogCallback, filePathSave, window, filtersSave, numFiltersSave, nullptr);
+            }
+            
+            if (filePathSave[0] != 0)
+            {
+                int result = ConvertToSinclairQL8(pSurface, filePathSave, bGenerateMask, bGenerateShifting);
+                if (result != CONVERT_ERROR_NO_ERROR)
                 {
-                    int result = ConvertToSinclairQL8(pSurface, filePathDest.c_str(), bGenerateMask, bGenerateShifting);
-                    if (result != CONVERT_ERROR_NO_ERROR)
+                    switch (result)
                     {
-                        switch (result)
-						{
-                            case CONVERT_ERROR_WIDTH_NOT_MULTIPLE_OF_4:
-                                MessageBoxA(NULL, "The width of the image must be a multiple of 4.", "Fatal error", MB_ICONERROR | MB_OK);
-								break;
-                            case CONVERT_ERROR_CANNOT_OPEN_OUPUT_FILE:
-                                MessageBoxA(NULL, "Cannot open output file.", "Fatal error", MB_ICONERROR | MB_OK);
-                                break;
-                            default:
-                                MessageBoxA(NULL, "Unknown error.", "Fatal error", MB_ICONERROR | MB_OK);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        MessageBoxA(NULL, "Conversion successful.", "Done", MB_OK);
+                    case CONVERT_ERROR_WIDTH_NOT_MULTIPLE_OF_4:
+                        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", "The width of the image must be a multiple of 4.", window);
+                        break;
+                    case CONVERT_ERROR_CANNOT_OPEN_OUPUT_FILE:
+                        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", "Cannot open output file.", window);
+                        break;
+                    default:
+                        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", "Unknown error.", window);
+                        break;
                     }
                 }
+                else
+                {
+                    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Done", "Conversion successful.", window);
+                }
             }
-		}
+            filePathSave[0] = 0;
+        }
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -155,6 +190,10 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
+
+
+
 
 // Fonction pour ouvrir la boîte de dialogue Windows
 // Généré par IA
