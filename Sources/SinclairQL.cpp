@@ -83,7 +83,7 @@ int GetSinclairQLColor8Index(Uint8 r, Uint8 g, Uint8 b)
     return index;
 }
 
-bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName, bool bGenerateMask, bool bGenerateShifting)
+int ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName, bool bGenerateMask, bool bGenerateShifting)
 {
     Uint32* pPixels = (Uint32*)pSurface->pixels;
     int w = pSurface->pitch / 4;
@@ -93,14 +93,14 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName, bool bGenera
     int nNbWord = w / 4;
     if (nNbWord * 4 != w)
     {
-        return false;
+        return CONVERT_ERROR_WIDTH_NOT_MULTIPLE_OF_4;
     }
 
     // Open file for output.
     FILE* pFile = nullptr;
-    fopen_s(&pFile, "X://Sources//Jgl//Data//Bubbles16x16x5.bin", "wb");
+    fopen_s(&pFile, pName, "wb");
     if (!pFile)
-        return false;
+        return CONVERT_ERROR_CANNOT_OPEN_OUPUT_FILE;
 
 	// Create a new pixel array to shift the image
 	Uint32* pPixelsForShifting = new Uint32[(w + 8) * h]; // We add 4 pixels on each side
@@ -199,6 +199,6 @@ bool ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName, bool bGenera
 
     fclose(pFile);
 
-    return true;
+    return CONVERT_ERROR_NO_ERROR;
 }
 
