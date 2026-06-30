@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
             ImGui::Text("Witdh : %d", w);
             ImGui::Text("Height : %d", h);
 
-            static bool bGenerateMask = true;
-			static bool bGenerateShifting = true;
+            static bool bGenerateMask = false;
+			static bool bGenerateShifting = false;
 			ImGui::Checkbox("Generate mask", &bGenerateMask);
 			ImGui::Checkbox("Generate shifting", &bGenerateShifting);
 
