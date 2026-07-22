@@ -98,7 +98,7 @@ int ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName, bool bGenerat
 
     // Open file for output.
     FILE* pFile = nullptr;
-    fopen_s(&pFile, pName, "wb");
+    pFile = fopen(pName, "wb");
     if (!pFile)
         return CONVERT_ERROR_CANNOT_OPEN_OUPUT_FILE;
 
