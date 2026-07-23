@@ -182,8 +182,10 @@ int ConvertToSinclairQL8(SDL_Surface* pSurface, const char *pName, bool bGenerat
                     wQLMask8 |= SinclairQLWord_P3[7];
                 }
 
+            #if SDL_BYTEORDER == SDL_LIL_ENDIAN
                 wQLColor8 = (wQLColor8 & 0xFF00) >> 8 | (wQLColor8 & 0x00FF) << 8; // Swap bytes for little-endian
                 wQLMask8 = (wQLMask8 & 0xFF00) >> 8 | (wQLMask8 & 0x00FF) << 8; // Swap bytes for little-endian
+            #endif
 
                 pOutputBitmap[i * nNbWord + j] = wQLColor8;
                 pOutputMask[i * nNbWord + j] = wQLMask8;
